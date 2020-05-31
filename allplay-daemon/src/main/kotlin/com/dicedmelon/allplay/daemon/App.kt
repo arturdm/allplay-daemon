@@ -32,7 +32,6 @@ class App : CliktCommand() {
     private val port: Int by option(help = "port").int().default(8765)
 
     override fun run() {
-        println(System.getProperty("java.library.path"))
         val daemon = speakersDaemon {
 
         }.start()

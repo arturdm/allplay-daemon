@@ -13,15 +13,21 @@ dependencies {
 
 application {
     mainClassName "com.dicedmelon.allplay.daemon.Main"
-    applicationDefaultJvmArgs += ["-Djava.library.path=\$APP_HOME/lib/x86_64/darwin"]
 }
 
-distributions {
-    main {
-        contents {
-            from("libs") {
-                include "lib/**/*"
-            }
-        }
+startScripts {
+    defaultJvmOpts = ["-Djava.library.path=MY_APP_HOMElib/ARCH"]
+    doLast {
+        unixScript.text = unixScript.text
+                .replace('MY_APP_HOME', '\$APP_HOME/')
+                .replace('ARCH', '\$(uname -m)')
+        windowsScript.text = windowsScript.text
+                .replace('MY_APP_HOME', '%APP_HOME%\\')
+                .replace('ARCH', '%APP_HOME%\\')
     }
+}
+
+run {
+    String arch = System.getProperty("os.arch")
+    systemProperty "java.library.path", file("src/dist/lib/$arch")
 }

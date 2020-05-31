@@ -23,18 +23,13 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.text.DateFormat
 
 class App : CliktCommand() {
-    private val logger: Logger = LoggerFactory.getLogger(App::class.java)
     private val port: Int by option(help = "port").int().default(8765)
 
     override fun run() {
-        val daemon = speakersDaemon {
-
-        }.start()
+        val daemon = speakersDaemon().start()
 
         embeddedServer(Netty, port) {
             install(DefaultHeaders)
@@ -56,22 +51,40 @@ class App : CliktCommand() {
                     GlobalScope.launch {
                         call.respond(
                             SpeakersResponse(
-                                speakers = speakers.values.map {
-                                    val input = it.input()
-                                    val volume = it.volume()
-                                    Speaker(
-                                        id = it.id,
-                                        name = it.name,
-                                        input = Input(
-                                            activeInput = safeTry { input.activeInput }.orEmpty(),
-                                            availableInputs = safeTry { input.inputList }.orEmpty()
-                                        ),
-                                        volume = Volume(
-                                            isMute = safeTry { volume.isMute },
-                                            volume = safeTry { volume.volume }
-                                        ),
-                                        isConnected = it.isConnected
+                                speakers = speakers.values.map { speaker ->
+                                    val speakerToReturn = Speaker(
+                                        id = speaker.id,
+                                        name = speaker.name,
+                                        isConnected = speaker.isConnected
                                     )
+                                    if (speaker.isConnected) {
+                                        val input = speaker.input()
+                                        val volume = speaker.volume()
+                                        speakerToReturn.copy(
+                                            input = Input(
+                                                activeInput = input.activeInput,
+                                                availableInputs = input.inputList
+                                            ),
+                                            playlist = Playlist(
+                                                items = speaker.playlist.playlistItems.map {
+                                                    PlaylistItem(
+                                                        artist = it.artist,
+                                                        title = it.title,
+                                                        durationInMs = it.durationInMs,
+                                                        mediaType = it.mediaType,
+                                                        url = it.url,
+                                                        thumbnailUrl = it.thumbnailUrl
+                                                    )
+                                                }
+                                            ),
+                                            volume = Volume(
+                                                isMute = volume.isMute,
+                                                volume = volume.volume
+                                            )
+                                        )
+                                    } else {
+                                        speakerToReturn
+                                    }
                                 }
                             )
                         )
@@ -89,14 +102,5 @@ class App : CliktCommand() {
                 }
             }
         }.start(wait = true)
-    }
-
-    private fun <T> safeTry(function: () -> T): T? {
-        return try {
-            function()
-        } catch (e: Exception) {
-            logger.warn("Could not retrieve value", e)
-            return null
-        }
     }
 }

@@ -23,7 +23,7 @@ startScripts {
                 .replace('ARCH', '\$(uname -m)')
         windowsScript.text = windowsScript.text
                 .replace('MY_APP_HOME', '%APP_HOME%\\')
-                .replace('ARCH', '%APP_HOME%\\')
+                .replace('ARCH', '%PROCESSOR_ARCHITECTURE%\\')
     }
 }
 

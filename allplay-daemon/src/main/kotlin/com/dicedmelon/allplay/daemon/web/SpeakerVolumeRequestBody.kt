@@ -1,6 +1,6 @@
 package com.dicedmelon.allplay.daemon.web
 
-data class Volume(
+data class SpeakerVolumeRequestBody(
     val isMute: Boolean?,
     val level: Int?
 )

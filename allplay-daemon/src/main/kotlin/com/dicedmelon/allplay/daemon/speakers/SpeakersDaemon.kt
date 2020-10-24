@@ -50,7 +50,7 @@ class SpeakersDaemon {
                 try {
                     speaker.connect()
                 } catch (e: Exception) {
-                    it.retryCount.inc()
+                    it.retryCount++
                     logger.error("Failed to connect to speaker", e)
                 }
             } else {
@@ -66,8 +66,8 @@ class SpeakersDaemon {
     val isConnected: Boolean
         get() = allPlay.isConnected
 
-    val availableSpeakers: Map<String, Speaker>
-        get() = speakers.mapValues { it.value.speaker }
+    val availableSpeakers: Map<String, AvailableSpeaker>
+        get() = speakers
 }
 
 fun speakersDaemon(): SpeakersDaemon {

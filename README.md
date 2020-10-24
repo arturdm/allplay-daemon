@@ -66,7 +66,7 @@ GET /speakers
       },
       "volume": {
         "isMute": false,
-        "volume": 34
+        "level": 34
       },
       "isConnected": true
     }
@@ -74,11 +74,42 @@ GET /speakers
 }
 ```
 
+### Listing a single speaker
+```
+GET /speakers/12345678-1234-1234-1234-123456789abc
+{
+  "id": "12345678-1234-1234-1234-123456789abc",
+  "name": "D-STREAM",
+  "input": {
+    "activeInput": "",
+    "availableInputs": [
+      "Line-in"
+    ]
+  },
+  "playlist": {
+    "items": []
+  },
+  "volume": {
+    "isMute": false,
+    "level": 34
+  },
+  "isConnected": true
+}
+```
+
 ### Changing input
 ```
+POST /speakers/{id}/input
 {
     "input": "Line-in"
 }
-POST /speakers/{id}/input
+```
 
+### Changing volume
+```
+POST /speakers/{id}/volume
+{
+    "isMute": false,
+    "level": 30
+}
 ```

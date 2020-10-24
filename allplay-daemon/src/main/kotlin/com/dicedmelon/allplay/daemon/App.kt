@@ -51,43 +51,19 @@ class App : CliktCommand() {
                     GlobalScope.launch {
                         call.respond(
                             SpeakersResponse(
-                                speakers = speakers.values.map { speaker ->
-                                    val speakerToReturn = Speaker(
-                                        id = speaker.id,
-                                        name = speaker.name,
-                                        isConnected = speaker.isConnected
-                                    )
-                                    if (speaker.isConnected) {
-                                        val input = speaker.input()
-                                        val volume = speaker.volume()
-                                        speakerToReturn.copy(
-                                            input = Input(
-                                                activeInput = input.activeInput,
-                                                availableInputs = input.inputList
-                                            ),
-                                            playlist = Playlist(
-                                                items = speaker.playlist.playlistItems.map {
-                                                    PlaylistItem(
-                                                        artist = it.artist,
-                                                        title = it.title,
-                                                        durationInMs = it.durationInMs,
-                                                        mediaType = it.mediaType,
-                                                        url = it.url,
-                                                        thumbnailUrl = it.thumbnailUrl
-                                                    )
-                                                }
-                                            ),
-                                            volume = Volume(
-                                                isMute = volume.isMute,
-                                                volume = volume.volume
-                                            )
-                                        )
-                                    } else {
-                                        speakerToReturn
-                                    }
-                                }
+                                speakers = speakers.values.map { speaker -> speaker.toWebSpeaker() }
                             )
                         )
+                    }.join()
+                }
+                get("/speakers/{id}") {
+                    val speaker = daemon.availableSpeakers[call.parameters["id"]]
+                    GlobalScope.launch {
+                        if (speaker == null) {
+                            call.respond(HttpStatusCode.NotFound)
+                        } else {
+                            call.respond(speaker.toWebSpeaker())
+                        }
                     }.join()
                 }
                 post("/speakers/{id}/input") {
@@ -96,7 +72,18 @@ class App : CliktCommand() {
                         call.respond(HttpStatusCode.NotFound)
                     } else {
                         val body = call.receive<SpeakerInputRequestBody>()
-                        speaker.input().setInput(body.input)
+                        speaker.speaker.input().setInput(body.input)
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+                post("/speakers/{id}/volume") {
+                    val speaker = daemon.availableSpeakers[call.parameters["id"]]
+                    if (speaker == null) {
+                        call.respond(HttpStatusCode.NotFound)
+                    } else {
+                        val body = call.receive<SpeakerVolumeRequestBody>()
+                        body.level?.run { speaker.speaker.volume().volume = this }
+                        body.isMute?.run { speaker.speaker.volume().mute(this) }
                         call.respond(HttpStatusCode.OK)
                     }
                 }

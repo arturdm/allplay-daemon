@@ -18,7 +18,7 @@ application {
 jar {
     manifest {
         attributes(
-                "Specification-Version": scmVersion.version,
+                "Specification-Version": project.version,
                 "Implementation-Version": scmVersion.scmPosition.revision
         )
     }

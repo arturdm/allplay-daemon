@@ -37,12 +37,6 @@ class SpeakersDaemon {
         return this
     }
 
-    fun stop() {
-        ticker.cancel()
-        allPlay.removeSpeakerAnnouncedListener(speakerAnnouncedListener)
-        allPlay.disconnect()
-    }
-
     private fun updateSpeakers() {
         speakers.forEach { (id, it) ->
             val speaker = it.speaker
@@ -50,15 +44,10 @@ class SpeakersDaemon {
                 try {
                     speaker.connect()
                 } catch (e: Exception) {
-                    it.retryCount++
-                    logger.error("Failed to connect to speaker", e)
+                    logger.error("Failed to connect to speaker, rediscovering speakers", e)
+                    speakers.remove(id)
+                    allPlay.discoverSpeakers()
                 }
-            } else {
-                it.retryCount = 0
-            }
-
-            if (it.retryCount > 10) {
-                speakers.remove(id)
             }
         }
     }

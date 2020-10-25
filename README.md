@@ -43,7 +43,9 @@ The daemon starts an embedded HTTP server on port 8765 (customisable with
 ```
 GET /status
 {
-  "isConnected": true
+  "isConnected": true,
+  "version": "x.y.z",
+  "revision": "deadbaca"
 }
 ```
 
